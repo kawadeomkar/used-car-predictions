@@ -31,9 +31,9 @@ def lambda_handler(event, context):
         city_json[counter]["name"] = name.replace("'", "''")
         
     # pass to s3
-    s3 = boto3.resource('s3')
-    s3Object = s3.Object('CL_CITIES', 'cities.json')
-    s3Object.put(Body=(bytes(json.dumps(city_json).encode('UTF-8'))))
+    #s3 = boto3.resource('s3')
+    #s3Object = s3.Object('CL_CITIES', 'cities.json')
+    #s3Object.put(Body=(bytes(json.dumps(city_json).encode('UTF-8'))))
     
     return {
         'statusCode': 200,
