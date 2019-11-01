@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# start zookeeper, make sure config is correct 
+zookeeper-server-start config/zookeeper.properties
