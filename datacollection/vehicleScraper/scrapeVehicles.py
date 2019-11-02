@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from json import loads
 import json
 from lxml import html
@@ -106,7 +107,15 @@ def runScraper():
                 except:
                     print(f"Failed to reach {url}, entry has been dropped")
                     continue
+               
+                # get vehicles from today, otherwise skip
+                date = tree.xpath("//time[@class='date timeago']")
+                dt = date[0].attrib['datetime']
                 
+                # filter date by today's date
+                if dt.split('T')[0] != datetime.utcnow().strftime('%Y-%m-%d'):
+                    continue
+
                 attrs = tree.xpath('//span//b')
                 #this fetches a list of attributes about a given vehicle. each vehicle does not have every specific attribute listed on craigslist
                 #so this code gets a little messy as we need to handle errors if a car does not have the attribute we're looking for
@@ -250,9 +259,9 @@ def runScraper():
                 
                 #finally we get to insert the entry into the database
                 scraped += 1
+                #print(vehicleDict) 
             #these lines will execute every time we grab a new page (after 120 entries)
             print("{} vehicles scraped".format(scraped))
-            print(vehicleDict) 
           
 def main():
     runScraper()
