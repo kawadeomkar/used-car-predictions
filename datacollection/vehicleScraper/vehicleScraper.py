@@ -6,6 +6,8 @@ from lxml import html
 from datetime import datetime
 from requests_html import HTMLSession
 import boto3
+import kafkaconnect
+import argparse
 
 def runScraper():
 
@@ -15,6 +17,16 @@ def runScraper():
     bucket = s3.Bucket('citiesscraped')
     bucket.download_file('cities.txt', 'cities.txt')
     
+    # connect to kafka
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--hosts", required=True, default="localhost:9092")
+    parser.add_argument("--topics", required=True, default="vehicleScraper")
+    argument = parser.parse_args()
+    hosts = str(argument.hosts)
+    topics = str(argument.topics)
+    
+    client, producer = kafkaconnect.connect(hosts, topics)
+
     citiesList = []
     with open('cities.txt') as json_file:
         cities = json.load(json_file)
@@ -110,9 +122,15 @@ def runScraper():
                
                 # get vehicles from today, otherwise skip
                 date = tree.xpath("//time[@class='date timeago']")
-                dt = date[0].attrib['datetime']
                 
-                # filter date by today's date
+                # page could be under review or listing might have been removed, in that case skip
+                if (date == []): continue 
+
+                dt = date[0].attrib['datetime']
+
+                # filter date by today's date WARNING (run only from 9AM-5PM UTC))
+                print(datetime.utcnow().strftime('%Y-%m-%d'))
+
                 if dt.split('T')[0] != datetime.utcnow().strftime('%Y-%m-%d'):
                     continue
 
@@ -256,10 +274,13 @@ def runScraper():
                 except:
                     pass
                     
-                
+                # produce message to kafka
+                msg = json.dumps(vehicleDict)
+                producer.produce(msg.encode('utf-8'))              
+  
                 #finally we get to insert the entry into the database
                 scraped += 1
-                #print(vehicleDict) 
+                 
             #these lines will execute every time we grab a new page (after 120 entries)
             print("{} vehicles scraped".format(scraped))
           
