@@ -1579,3 +1579,6 @@ org.apache.zookeeper.KeeperException$NodeExistsException: KeeperErrorCode = Node
 [2019-11-04 02:52:39,249] INFO [GroupCoordinator 0]: Member consumer-1-8602d176-dba6-4bf3-902c-efc8e5deb46c in group console-consumer-83192 has left, removing it from the group (kafka.coordinator.group.GroupCoordinator)
 [2019-11-04 02:52:39,251] INFO [GroupCoordinator 0]: Preparing to rebalance group console-consumer-83192 in state PreparingRebalance with old generation 1 (__consumer_offsets-24) (reason: removing member consumer-1-8602d176-dba6-4bf3-902c-efc8e5deb46c on LeaveGroup) (kafka.coordinator.group.GroupCoordinator)
 [2019-11-04 02:52:39,251] INFO [GroupCoordinator 0]: Group console-consumer-83192 with generation 2 is now empty (__consumer_offsets-24) (kafka.coordinator.group.GroupCoordinator)
+[2019-11-04 02:57:56,557] INFO [GroupMetadataManager brokerId=0] Group console-consumer-41813 transitioned to Dead in generation 2 (kafka.coordinator.group.GroupMetadataManager)
+[2019-11-04 02:57:56,567] INFO [GroupMetadataManager brokerId=0] Group console-consumer-83192 transitioned to Dead in generation 2 (kafka.coordinator.group.GroupMetadataManager)
+[2019-11-04 02:57:56,568] INFO [GroupMetadataManager brokerId=0] Removed 0 expired offsets in 15 milliseconds. (kafka.coordinator.group.GroupMetadataManager)
