@@ -111,7 +111,7 @@ def runScraper():
                 
                 vehicleDict = {}
                 vehicleDict["price"] = int(item[1].strip("$"))
-                
+                vehicleDict["city"] = city
                 try:
                     #grab each individual vehicle page
                     page = session.get(url)
@@ -129,10 +129,10 @@ def runScraper():
                 dt = date[0].attrib['datetime']
 
                 # filter date by today's date WARNING (run only from 9AM-5PM UTC))
-                print(datetime.utcnow().strftime('%Y-%m-%d'))
+                #print(datetime.utcnow().strftime('%Y-%m-%d'))
 
-                if dt.split('T')[0] != datetime.utcnow().strftime('%Y-%m-%d'):
-                    continue
+                #if dt.split('T')[0] != datetime.utcnow().strftime('%Y-%m-%d'):
+                    #continue
 
                 attrs = tree.xpath('//span//b')
                 #this fetches a list of attributes about a given vehicle. each vehicle does not have every specific attribute listed on craigslist
