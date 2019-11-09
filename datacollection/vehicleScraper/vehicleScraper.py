@@ -234,22 +234,40 @@ def runScraper():
 					idxYear = None
 					idxMake = None
 					modelWords = model.split(" ")
+
+					# assuming year is the first word (99%+ case)
+					if len(modelWords[0]) == 4 and modelWords[0].isnumeric():
+						foundYear = True
+						year = int(modelWords[0])
+						del modelWords[0]
+					
+					# duplicate year
+					if str(year) == modelWords[0]:
+						del modelWords[0]:
+			
+					if len(modelWords) == 1 and modelWords[0].lower() in carBrands:
+						
+					
+					
+					for idx, word in enumerate(modelWords):
+						if word.lower() in carBrands:
+							make = word.lower()
+							if idx+1 > len(modelWords)-1:
+								if modelWords[idx].lower() + modelWords[idx+1].lower() in carBrands:	
+									
+					###
 	
 					for idx, word in enumerate(modelWords):
 						if len(word) == 4 and word.isnumeric():
-							if foundYear:
+							if foundYear and :
 								duplicateYear = idx
 								continue
 
 							year = int(word)
-							if year > nextYear:
-								year = None
-								continue
-
 							foundYear = True
 							idxYear = idx
 
-						elif word.lower() is in carBrands:
+						elif word.lower() in carBrands:
 							make = word.lower()	
 							# convert from alias to actual car make
 							if make in aliasDict:
@@ -257,19 +275,9 @@ def runScraper():
 							foundMake = True	
 							idxMake = idx	
 
-					# if we cannot parse year, skip car
-					if year is None:
-						continue
-					if duplicateYear is not None:
-						del model_words[duplicateYear]
 					if not foundMake:
-						# try checking two words before and after year index 
-						idx_len = len(modelWords)-1
-						if yearIdx == 0:
-							if idxYear + 3 > idx_len: 
-								pass
-									
-			
+						if len(	
+		
 				else:
 					continue
 
