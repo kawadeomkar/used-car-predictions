@@ -63,42 +63,42 @@ def runScraper():
 				'subaru', 'tesla', 'toyota', 'trion', 'tvr', 'valmet', 'volkswagen', 'volvo', 'vw', 'zimmer']	
 
 	aliasDict = {
-					# alfa romeo
-					"alfa":"alfa romeo",
-					"alfa-romeo":"alfa romeo",
-					"romeo":"alfa romeo",
-					# aston martin
-					"aston-martin":"aston martin",
-					"aston":"aston martin",
-					"astonmartin":"aston martin",
-					# bmw
-					"bimmer":"bmw",
-					# chevy
-					"chevy":"chevorlet",
-					"chev":"chevorlet",
-					# ford
-					"ford motors":"ford",
-					"fordmotors": "ford",
-					# harley davidson
-					"harley davidson":"harley-davidson",
-					"harley":"harley-davidson",
-					# infiniti
-					"infinity":"infiniti",
-					# lamborghini
-					"lambo":"lamborghini",
-					# land rover
-					"land-rover":"land rover",
-					"landrover" :"land rover",
-					"rover":"land rover",
-					# mercedes
-					"benz":"mercedes-benz",
-					"mercedes":"mercedes-benz",
-					"mercedes benz":"mercedes-benz",
-					"mb":"mercedes-benz",
-					"mercedesbenz":"mercedes-benz",
-					# volkswagen
-					"vw":"volkswagen" 
-				}
+			# alfa romeo
+			"alfa":"alfa romeo",
+			"alfa-romeo":"alfa romeo",
+			"romeo":"alfa romeo",
+			# aston martin
+			"aston-martin":"aston martin",
+			"aston":"aston martin",
+			"astonmartin":"aston martin",
+			# bmw
+			"bimmer":"bmw",
+			# chevy
+			"chevy":"chevorlet",
+			"chev":"chevorlet",
+			# ford
+			"ford motors":"ford",
+			"fordmotors": "ford",
+			# harley davidson
+			"harley davidson":"harley-davidson",
+			"harley":"harley-davidson",
+			# infiniti
+			"infinity":"infiniti",
+			# lamborghini
+			"lambo":"lamborghini",
+			# land rover
+			"land-rover":"land rover",
+			"landrover" :"land rover",
+			"rover":"land rover",
+			# mercedes
+			"benz":"mercedes-benz",
+			"mercedes":"mercedes-benz",
+			"mercedes benz":"mercedes-benz",
+			"mb":"mercedes-benz",
+			"mercedesbenz":"mercedes-benz",
+			# volkswagen
+			"vw":"volkswagen" 
+		}
 
 	for city in citiesList:
 		scrapedInCity = 0
@@ -192,7 +192,8 @@ def runScraper():
 				#so this code gets a little messy as we need to handle errors if a car does not have the attribute we're looking for
 				for item in attrs:
 					try:
-						#model is the only attribute without a specific tag on craigslist, so if this code fails it means that we've grabbed the model of the vehicle
+						# model is the only attribute without a specific tag on craigslist
+						# if this code fails it means that we've grabbed the model of the vehicle
 						k = item.getparent().text.strip()
 						k = k.strip(":")
 					except:
@@ -232,7 +233,7 @@ def runScraper():
 					duplicateYear = False					
 					idxYear = None
 					idxMake = None
-					modelWords = model.split(" "):
+					modelWords = model.split(" ")
 	
 					for idx, word in enumerate(modelWords):
 						if len(word) == 4 and word.isnumeric():
