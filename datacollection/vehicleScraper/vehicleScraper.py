@@ -24,13 +24,16 @@ s3 = s3_session.resource('s3')
 bucket = s3.Bucket('citiesscraped')
 bucket.download_file('cities.txt', 'cities.txt')
 
-# connect to kafka
+# parse arguments 
 parser = argparse.ArgumentParser()
 parser.add_argument("--hosts", required=True, default="localhost:9092")
 parser.add_argument("--topics", required=True, default="vehicleScraper")
+parser.add_argument("--threads", required=True, default="4")
+
 argument = parser.parse_args()
 hosts = str(argument.hosts)
 topics = str(argument.topics)
+threads = int(argument.threads)
 
 def parse_model(raw_model):
         foundYear = False
@@ -115,7 +118,10 @@ def cityScrape(city, threadDict):
 		tree = html.fromstring(page.content)
 		
 		#the following line returns a list of urls for different vehicles
-		vehicles = tree.xpath('//a[@class="result-image gallery"]')
+		#vehicles = tree.xpath('//a[@class="result-image gallery"]')
+		vehicles = tree.xpath('//p[@class="result-info"]')
+		
+
 		if len(vehicles) == 0:
 			#if we no longer have entries, continue to the next city
 			empty = True
@@ -124,11 +130,19 @@ def cityScrape(city, threadDict):
 		vehiclesList = []
 		for item in vehicles:
 			vehicleDetails = []
-			vehicleDetails.append(item.attrib["href"])
+			
+			dt = item[1].attrib['datetime']
+			# filter date by today's date WARNING (run only from 9AM-5PM UTC))
+			if dt.split(' ')[0] != datetime.utcnow().strftime('%Y-%m-%d'):
+				continue
+			else:
+				vehicleDict["datetime"] = dt
+
+			vehicleDetails.append(item[2].attrib["href"])
 			try:
-				#this code attempts to grab the price of the vehicle. some vehicles dont have prices (which throws an exception)
-				#and we dont want those which is why we toss them
-				vehicleDetails.append(item[0].text)
+				# attempt to grab the price of the vehicle. some vehicles dont have prices (which throws an exception)
+				# and we dont want those which is why we toss them
+				vehicleDetails.append(item[3][0].text)
 			except:
 				continue
 			vehiclesList.append(vehicleDetails)
@@ -147,20 +161,6 @@ def cityScrape(city, threadDict):
 			except:
 				print(f"Failed to reach {url}, entry has been dropped")
 				continue
-		   
-			# get vehicles from today, otherwise skip
-			date = tree.xpath("//time[@class='date timeago']")
-			
-			# page could be under review or listing might have been removed, in that case skip
-			if (date == []): continue 
-
-			dt = date[0].attrib['datetime']
-
-			# filter date by today's date WARNING (run only from 9AM-5PM UTC))
-			#print(datetime.utcnow().strftime('%Y-%m-%d'))
-
-			#if dt.split('T')[0] != datetime.utcnow().strftime('%Y-%m-%d'):
-				#continue
 
 			attrs = tree.xpath('//span//b')
 			#this fetches a list of attributes about a given vehicle. each vehicle does not have every specific attribute listed on craigslist
