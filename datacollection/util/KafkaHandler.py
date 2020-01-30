@@ -1,6 +1,6 @@
 from pykafka import KafkaClient
 import logging
-import Queue
+from queue import Queue
 import socket
 
 
@@ -77,8 +77,8 @@ class KafkaHandler(logging.Handler):
 		sets the subject to set subject + exception + kafka topic
 		"""
 		# RFC 2822 Section 2.1.1: Email subject length is limited to the 78 character length standard
-		return self.subject + " " self.topic + " " exception if len(self.subject) + len(exception) + len(self.topic) < 79 
-			else self.subject + " " self.topic + " " + exception [:78 - len(self.subject) - len(self.topic)]
+		return self.subject + " " + self.topic + " " + exception if len(self.subject) + len(exception) + len(self.topic) < 79 \
+			else self.subject + " " + self.topic + " " + exception[:78 - len(self.subject) - len(self.topic)]
 
 
 	def check_delivery(self):
@@ -126,6 +126,7 @@ class KafkaHandler(logging.Handler):
 							smtp.quit()
 					except Exception:
 						self.handleError(record)
+			# raised when no delivery reports
 			except Queue.Empty:
 				break
 
