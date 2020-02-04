@@ -41,7 +41,8 @@ def connect(hosts, topics, zookeeper, consumer_group):
 		auto_offset_reset=OffsetType.LATEST,
 		zookeeper_connect=zookeeper,
 		consumer_group=consumer_group,
-		reset_offset_on_start=False
+		reset_offset_on_start=False,
+		consumer_timeout_ms=5000
 	)
  
 	return client, consumer
@@ -51,22 +52,25 @@ def connect(hosts, topics, zookeeper, consumer_group):
 def consume():
 	# create new consumer per thread	
 	client, consumer = connect(hosts, topic, zookeeper, consumer_group)
-   
+  
+	print("yallo") 
 	for msg in consumer:
 		# TODO connect and send to cassandra
-		writeFile(json.loads(msg.decode('utf-8'))) 
+		writeFile(json.loads(msg.value.decode('utf-8'))) 
+
+	consumer.stop()
 
 
 # temporary saving to local disk for ml training
 def writeFile(jsonObj):
 	with lock:
 		with open("training.json", 'w', encoding='utf-8') as f:
-			json.dump(jsonObj, f, indent=4)
+			f.write(json.dumps(jsonObj))
 
 	
 def initThreading():
-	threadDict = threading.local()
-	threadDict.consumer = None
+	#threadDict = threading.local()
+	#threadDict.consumer = None
 	
 	for i in range(threadCount):
 		t = threading.Thread(target=consume)
