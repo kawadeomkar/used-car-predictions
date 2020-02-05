@@ -1,4 +1,5 @@
 import argparse
+import csv
 import json
 import os
 from pykafka import KafkaClient
@@ -64,7 +65,7 @@ def consume():
 # temporary saving to local disk for ml training
 def writeFile(jsonObj):
 	with lock:
-		with open("training.json", 'w', encoding='utf-8') as f:
+		with open("training.csv", 'a', encoding='utf-8') as f:
 			f.write(json.dumps(jsonObj))
 
 	
