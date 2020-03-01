@@ -1,0 +1,11 @@
+year
+make
+model
+price
+city
+datetime
+model_raw
+image_url
+lat
+lon
+description

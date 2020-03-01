@@ -33,7 +33,7 @@ parser.add_argument("--threads", required=True, default="4")
 argument = parser.parse_args()
 hosts = str(argument.hosts)
 topics = str(argument.topics)
-threads = int(argument.threads)
+threadCount = int(argument.threads)
 
 def parse_model(raw_model):
         foundYear = False
@@ -49,8 +49,7 @@ def parse_model(raw_model):
                 return aliasDict[makeAlias] if makeAlias in aliasDict else makeAlias
 
         # assuming year is the first word (99%+ case)
-        if len(modelWords[0]) == 4 and modelWords[0].isnumeric():
-                foundYear = True
+
                 year = int(modelWords[0])
                 ret['year'] = year
                 modelWords.remove(modelWords[0])
@@ -120,7 +119,6 @@ def cityScrape(city, threadDict):
 		#the following line returns a list of urls for different vehicles
 		#vehicles = tree.xpath('//a[@class="result-image gallery"]')
 		vehicles = tree.xpath('//p[@class="result-info"]')
-		
 
 		if len(vehicles) == 0:
 			#if we no longer have entries, continue to the next city
@@ -133,11 +131,11 @@ def cityScrape(city, threadDict):
 			
 			dt = item[1].attrib['datetime']
 			# filter date by today's date WARNING (run only from 9AM-5PM UTC))
+			""" TEST MODE ON
 			if dt.split(' ')[0] != datetime.utcnow().strftime('%Y-%m-%d'):
 				continue
-			else:
-				vehicleDict["datetime"] = dt
-
+			"""
+			
 			vehicleDetails.append(item[2].attrib["href"])
 			try:
 				# attempt to grab the price of the vehicle. some vehicles dont have prices (which throws an exception)
@@ -145,8 +143,10 @@ def cityScrape(city, threadDict):
 				vehicleDetails.append(item[3][0].text)
 			except:
 				continue
+			
+			vehicleDetails.append(dt)
 			vehiclesList.append(vehicleDetails)
-		
+	
 		#loop through each vehicle
 		for item in vehiclesList:
 			url = item[0]
@@ -154,6 +154,7 @@ def cityScrape(city, threadDict):
 			vehicleDict = {}
 			vehicleDict["price"] = int(item[1].strip("$"))
 			vehicleDict["city"] = city['name']
+			vehicleDict["datetime"] = item[2]
 			try:
 				#grab each individual vehicle page
 				page = threadDict.session.get(url)
@@ -165,17 +166,17 @@ def cityScrape(city, threadDict):
 			attrs = tree.xpath('//span//b')
 			#this fetches a list of attributes about a given vehicle. each vehicle does not have every specific attribute listed on craigslist
 			#so this code gets a little messy as we need to handle errors if a car does not have the attribute we're looking for
-			for item in attrs:
+			for att in attrs:
 				try:
 					# model is the only attribute without a specific tag on craigslist
 					# if this code fails it means that we've grabbed the model of the vehicle
-					k = item.getparent().text.strip()
+					k = att.getparent().text.strip()
 					k = k.strip(":")
 				except:
 					k = "model_raw"
 				try:
 					#this code fails if item=None so we have to handle it appropriately
-					vehicleDict[k] = item.text.strip()
+					vehicleDict[k] = att.text.strip()
 				except:
 					continue
 				
@@ -217,6 +218,7 @@ def cityScrape(city, threadDict):
 				
 			# produce message to kafka
 			msg = json.dumps(vehicleDict)
+			#print("vehicleDict:", vehicleDict)
 			threadDict.producer.produce(msg.encode('utf-8'))			   
 			#finally we get to insert the entry into the database
 			scraped += 1
@@ -238,13 +240,14 @@ def threader(threadDict):
 		cityScrape(item, threadDict)
 		cityQueue.task_done()
 
+	threadDict.producer.stop()
 
 def initThreading():
 	threadDict = threading.local()
 	threadDict.producer = None
 	threadDict.session = None
 	
-	for i in range(4):
+	for i in range(threadCount):
 		t = threading.Thread(target=threader, args=(threadDict,))
 		t.daemon = True
 		t.start()
@@ -260,14 +263,13 @@ def populateQueue():
 def stopThreads():
 	cityQueue.join()
 	# stop workers
-	for i in range(4):
+	for i in range(threadCount):
     		cityQueue.put(None)
 	for t in threads:
     		t.join()
 		
 def main():
 	populateQueue()
-	print("populated queue")
 	initThreading()
 	stopThreads()
 

@@ -14,3 +14,4 @@ TODO:
 3.	Create machine learning model (satvik & omkar)
 4.	(something with account creation processing with spark from DB to redshift TBD)
 
+
