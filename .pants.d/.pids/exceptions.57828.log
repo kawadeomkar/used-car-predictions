@@ -1,0 +1,32 @@
+timestamp: 2020-03-01T04:22:18.012054
+process title: /Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/bin/python /Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/bin/pants --version
+sys.argv: ['/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/bin/pants', '--version']
+pid: 57828
+Exception caught: (builtins.Exception)
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/bin/pants", line 8, in <module>
+    sys.exit(main())
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/lib/python3.7/site-packages/pants/bin/pants_loader.py", line 81, in main
+    PantsLoader.run()
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/lib/python3.7/site-packages/pants/bin/pants_loader.py", line 77, in run
+    cls.load_and_execute(entrypoint)
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/lib/python3.7/site-packages/pants/bin/pants_loader.py", line 70, in load_and_execute
+    entrypoint_main()
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/lib/python3.7/site-packages/pants/bin/pants_exe.py", line 32, in main
+    PantsRunner(start_time=start_time).run()
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/lib/python3.7/site-packages/pants/bin/pants_runner.py", line 103, in run
+    options_bootstrapper=options_bootstrapper
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/lib/python3.7/site-packages/pants/bin/local_pants_runner.py", line 173, in create
+    options
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/lib/python3.7/site-packages/pants/bin/local_pants_runner.py", line 107, in _maybe_init_graph_session
+    build_config
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/lib/python3.7/site-packages/pants/init/engine_initializer.py", line 291, in setup_legacy_graph
+    execution_options=ExecutionOptions.from_bootstrap_options(bootstrap_options),
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/lib/python3.7/site-packages/pants/init/engine_initializer.py", line 434, in setup_legacy_graph_extended
+    visualize_to_dir=bootstrap_options.native_engine_visualize_to,
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/lib/python3.7/site-packages/pants/engine/scheduler.py", line 107, in __init__
+    execution_options=execution_options,
+  File "/Users/Omkar/.cache/pants/setup/bootstrap-Darwin-x86_64/1.24.0_py37/lib/python3.7/site-packages/pants/engine/native.py", line 982, in new_scheduler
+    raise value
+
+Exception message: Could not initialize store for process cache: "Error making env for store at \"/Users/Omkar/.cache/pants/lmdb_store/processes/a\": Too many open files"
+

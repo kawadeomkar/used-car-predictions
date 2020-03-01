@@ -1,0 +1,12 @@
+id: pants_run_2020_03_01_04_26_06_16_0cd841a04126450fb9728a1fae292d05
+timestamp: 1583065566.016362
+datetime: Sunday Mar 01, 2020 04:26:06
+user: omkar
+machine: ip-10-0-0-38.ec2.internal
+path: /Users/Omkar/Desktop/used-car-predictions
+buildroot: /Users/Omkar/Desktop/used-car-predictions
+version: 1.24.0
+cmd_line: pants --version
+default_report: /Users/Omkar/Desktop/used-car-predictions/.pants.d/reports/pants_run_2020_03_01_04_26_06_16_0cd841a04126450fb9728a1fae292d05/html/build.html
+specs_from_command_line: []
+outcome: SUCCESS

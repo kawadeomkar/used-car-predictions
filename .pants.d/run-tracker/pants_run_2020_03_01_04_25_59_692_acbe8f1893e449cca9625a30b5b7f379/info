@@ -1,0 +1,12 @@
+id: pants_run_2020_03_01_04_25_59_692_acbe8f1893e449cca9625a30b5b7f379
+timestamp: 1583065559.6928158
+datetime: Sunday Mar 01, 2020 04:25:59
+user: omkar
+machine: ip-10-0-0-38.ec2.internal
+path: /Users/Omkar/Desktop/used-car-predictions
+buildroot: /Users/Omkar/Desktop/used-car-predictions
+version: 1.24.0
+cmd_line: pants --print-exception-stacktrace
+default_report: /Users/Omkar/Desktop/used-car-predictions/.pants.d/reports/pants_run_2020_03_01_04_25_59_692_acbe8f1893e449cca9625a30b5b7f379/html/build.html
+specs_from_command_line: []
+outcome: FAILURE
