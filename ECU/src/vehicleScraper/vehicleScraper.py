@@ -48,12 +48,14 @@ def parse_model(raw_model):
         def checkAlias(makeAlias):
                 return aliasDict[makeAlias] if makeAlias in aliasDict else makeAlias
 
-        # assuming year is the first word (99%+ case)
-
+                # assuming year is the first word (99%+ case)
                 year = int(modelWords[0])
                 ret['year'] = year
                 modelWords.remove(modelWords[0])
+
         # skip otherwise
+        if len(modelWords[0]) == 4 and modelWords[0].isnumeric():
+            foundYear = True
         else:
                 print(modelWords)
                 return None

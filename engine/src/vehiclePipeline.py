@@ -5,6 +5,10 @@ import os
 from pykafka import KafkaClient
 from pykafka.common import OffsetType
 import threading
+import boto3
+from datetime import datetime
+
+# TODO: this should probably be in a class, configparser for creds/other stuffi
 
 threads = []
 # TESTING: add lock for writing to textfile, temporary ML training file
@@ -19,6 +23,7 @@ parser.add_argument("--consumer_group", required=True, default="vehicle_pipeline
 parser.add_argument("--threads", required=True, default=4)
 arguments = parser.parse_args()
 
+# zookeeper and kafka broker connection
 hosts = str(arguments.hosts)
 topic = str(arguments.topics)
 zookeeper = str(arguments.zookeeper)
@@ -26,7 +31,26 @@ consumer_group = str(arguments.consumer_group)
 threadCount = int(arguments.threads)
 
 
-def connect(hosts, topics, zookeeper, consumer_group):
+def connectS3():
+    # TODO: change profile name
+    s3_session = boto3.Session(profile_name="omkar")
+    s3 = s3_session.resource('s3')
+    bucket = s3.Bucket('craigslist-vehicle-scraper')
+    print("created bucket" +bucket.name)
+    return bucket
+
+
+def s3CraigslistSink(bucket, records):
+    time = "T".join(str(datetime.now()).split(' '))
+    s3Obj = bucket.Object("craigslist-" + time + ".json")
+    print("sending records to s3")
+    # TODO: try catch
+    s3Obj.put(
+        Body=(bytes(json.dumps(records).encode('UTF-8')))
+    )
+
+
+def connectKafka(hosts, topics, zookeeper, consumer_group):
 	
 	# create client given hosts
 	client = KafkaClient(hosts=hosts)
@@ -39,7 +63,7 @@ def connect(hosts, topics, zookeeper, consumer_group):
 	topic = client.topics[topics]
 	consumer = topic.get_balanced_consumer(
 		auto_commit_enable=True,
-		auto_offset_reset=OffsetType.LATEST,
+		auto_offset_reset=OffsetType.EARLIEST,
 		zookeeper_connect=zookeeper,
 		consumer_group=consumer_group,
 		reset_offset_on_start=False,
@@ -51,15 +75,34 @@ def connect(hosts, topics, zookeeper, consumer_group):
 
 
 def consume():
-	# create new consumer per thread	
-	client, consumer = connect(hosts, topic, zookeeper, consumer_group)
-  
-	print("yallo") 
-	for msg in consumer:
-		# TODO connect and send to cassandra
-		writeFile(json.loads(msg.value.decode('utf-8'))) 
+    # create new consumer per thread
+    print(hosts, topic, zookeeper, consumer_group)
+    client, consumer = connectKafka(hosts, topic, zookeeper, consumer_group)
+    s3Bucket = connectS3()
+    recordCounter = 0
+    records = []
 
-	consumer.stop()
+    print(type(consumer))
+    print(type(consumer.held_offsets))
+    print(consumer.held_offsets)
+    print("yallo")
+    for msg in consumer:
+        record = json.loads(msg.value.decode('utf-8'))
+        records.append(record)
+        # TODO: hardcoded 1k record count before sink to s3 (lol hardcode fix later)
+        if len(records) == 1000:
+            print(len(records))
+            s3CraigslistSink(s3Bucket, records)
+            consumer.commit_offsets()
+            records.clear()
+        # writeFile(json.loads(msg.value.decode('utf-8')))
+
+    print(len(records))
+    if len(records) > 0:
+        s3CraigslistSink(s3Bucket, records)
+        consumer.commit_offsets()
+
+    consumer.stop()
 
 
 # temporary saving to local disk for ml training
