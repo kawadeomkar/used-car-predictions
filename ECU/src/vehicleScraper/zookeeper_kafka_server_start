@@ -1,6 +1,6 @@
 #!/bin/bash
 
 # start zookeeper, make sure config is correct 
-nohup bin/zookeeper-server-start config/zookeeper.properties &
+nohup zookeeper-server-start config/zookeeper.properties &
 # start kafka server
-nohup bin/kafka-server-start config/server.properties &
+nohup kafka-server-start config/server.properties &
