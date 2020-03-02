@@ -41,3 +41,7 @@ var/
 /build-support/virtualenv-*
 .pants.workdir.file_lock
 .pants.d/
+.pants.d
+dist
+.pids
+.pants.workdir.file_lock
