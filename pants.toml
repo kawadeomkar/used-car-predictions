@@ -1,2 +1,27 @@
 [GLOBAL]
-pants_version = "1.24.0"
+pants_version = "2.0.0"
+pantsd = true
+
+backend_packages.add = [
+  'pants.backend.python',
+  'pants.backend.python.lint.docformatter',
+  'pants.backend.python.lint.black',
+  'pants.backend.python.lint.flake8',
+  'pants.backend.python.lint.isort',
+  'pants.backend.python.typecheck.mypy',
+]
+
+pants_distdir_legacy_paths = false
+
+[source]
+root_patterns = [
+  'ecu/src',
+  'engine/src',
+  'intercooler/dags',
+  'trackday/'
+]
+
+[python-setup]
+interpreter_constraints = [">=3.7"]
+
+# include linting

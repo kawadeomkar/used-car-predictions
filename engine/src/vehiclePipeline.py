@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser()
 # TODO: Remove defaults (keep for local testing) 
 parser.add_argument("--hosts", required=True, default="localhost:9092")
 parser.add_argument("--zookeeper", required=True, default="localhost:2181")
-parser.add_argument("--topics", required=True, default="vehicleScraper")
+parser.add_argument("--topics", required=True, default="vehicle_scraper")
 parser.add_argument("--consumer_group", required=True, default="vehicle_pipeline")
 parser.add_argument("--threads", required=True, default=4)
 arguments = parser.parse_args()
@@ -42,7 +42,7 @@ def connectS3():
 
 def s3CraigslistSink(bucket, records):
     time = "T".join(str(datetime.now()).split(' '))
-    s3Obj = bucket.Object("craigslist-" + time + ".json")
+    s3Obj = bucket.Object("craigslist-" + datetime.now().strftime("%m-%d-%Y") +  "/" + time + ".json")
     print("sending records to s3")
     # TODO: try catch
     s3Obj.put(
@@ -85,7 +85,7 @@ def consume():
     print(type(consumer))
     print(type(consumer.held_offsets))
     print(consumer.held_offsets)
-    print("yallo")
+
     for msg in consumer:
         record = json.loads(msg.value.decode('utf-8'))
         records.append(record)

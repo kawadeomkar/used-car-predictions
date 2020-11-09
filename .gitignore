@@ -39,9 +39,9 @@ var/
 /build-support/*.pex
 /build-support/*.venv
 /build-support/virtualenv-*
-.pants.workdir.file_lock
-.pants.d/
-.pants.d
-dist
-.pids
-.pants.workdir.file_lock
+
+# Pants workspace files
+/.pants.d/
+/dist/
+/.pids
+/.pants.workdir.file_lock*
