@@ -1,4 +1,4 @@
-carBrands = [
+car_brands = [
 		'acura', 'alfa', 'alfa romeo', 'alfa-romeo', 'alpina', 'anteros', 'aston', 'aston martin',
 		'aston-martin', 'astonmartin', 'audi', 'aurica', 'benz', 'bimmer', 'bmw', 'bugatti', 'buick', 'bxr', 'cadillac', 'chev',
 		'chevrolet', 'chevy', 'chrysler', 'datsun', 'desoto', 'dodge', 'eagle', 'elio motors', 'falcon',

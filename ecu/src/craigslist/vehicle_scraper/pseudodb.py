@@ -1,4 +1,4 @@
-carBrands = [
+car_brands = [
     'acura', 'alfa', 'alfa romeo', 'alfa-romeo', 'alpina', 'anteros', 'aston', 'aston martin',
     'aston-martin', 'astonmartin', 'audi', 'aurica', 'benz', 'bimmer', 'bmw', 'bugatti', 'buick',
     'bxr', 'cadillac', 'chev',
@@ -21,7 +21,7 @@ carBrands = [
     'zimmer'
 ]
 
-aliasDict = {
+brand_aliases = {
     # alfa romeo
     "alfa": "alfa romeo",
     "alfa-romeo": "alfa romeo",

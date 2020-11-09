@@ -11,7 +11,7 @@ import json
 import kafkaconnect
 import logging
 import os
-from pseudodb import *
+from src.craigslist.vehicle_scraper.pseudodb import car_brands, brand_aliases
 from queue import Queue
 import threading
 
@@ -19,6 +19,7 @@ import threading
 city_queue = Queue()
 threads = []
 
+# TODO: add logging
 
 # parse arguments TODO: make these env vars
 parser = argparse.ArgumentParser()
@@ -41,50 +42,44 @@ def s3_init():
 
 
 def parse_model(raw_model):
-    found_year = False
+    # TODO: ok this is really crappy code, needs to be rewritten and logged for analysis/error rate
     foundMake = False
     makeDouble = False
-    idxMake = None
     parsed_title_tokens = raw_model.strip().split(" ")
-    make = None
     ret = {}
 
     def check_brand_alias(make):
-        return aliasDict[make] if make in aliasDict else make
+        return brand_aliases[make] if make in brand_aliases else make
 
     # skip otherwise
-    if len(parsed_title_tokens[0]) == 4 and parsed_title_tokens[0].isnumeric():
-        found_year = True
-    else:
+    if len(parsed_title_tokens[0]) != 4 and not parsed_title_tokens[0].isnumeric():
         print(parsed_title_tokens)
         return None
 
     # assuming year is the first word (99%+ case)
-    year = int(parsed_title_tokens[0])
-    ret['year'] = year
-    parsed_title_tokens.remove(parsed_title_tokens[0])
+    year = parsed_title_tokens[0]
+    ret['year'] = int(year)
+    parsed_title_tokens.remove(year)
 
-    # if remaining word is a make
-    if len(parsed_title_tokens) == 1 and parsed_title_tokens[0].lower() in carBrands:
+    # if remaining word is a make TODO: shouldn't this just be ignored?
+    if len(parsed_title_tokens) == 1 and parsed_title_tokens[0].lower() in car_brands:
         ret['make'] = check_brand_alias(parsed_title_tokens[0].lower())
         return ret
 
     for idx, word in enumerate(parsed_title_tokens):
-        if word.lower() in carBrands:
+        if word.lower() in car_brands:
             make = word.lower()
             if idx + 1 < len(parsed_title_tokens):
-                if make + parsed_title_tokens[idx + 1].lower() in carBrands:
-                    idxMake = idx
+                if make + parsed_title_tokens[idx + 1].lower() in car_brands:
                     makeDouble = True
             ret['make'] = check_brand_alias(make)
             foundMake = True
-            idxMake = idx
             break
-        elif idx + 1 < len(parsed_title_tokens) and word.lower() + parsed_title_tokens[idx + 1].lower() in carBrands:
+        elif idx + 1 < len(parsed_title_tokens) and \
+                word.lower() + parsed_title_tokens[idx + 1].lower() in car_brands:
             ret['make'] = check_brand_alias(word.lower() + parsed_title_tokens[idx + 1].lower())
             foundMake = True
             makeDouble = True
-            idxMake = idx
             break
     if makeDouble:
         del parsed_title_tokens[idx]
@@ -100,27 +95,28 @@ def parse_model(raw_model):
     return ret
 
 
-def cityScrape(city, threadDict):
-    scraped = 0
-    scrapedInCity = 0
+def scrape_vehicles_from_city(city, thread_dict):
+    vehicles_scraped = 0
+    vehicles_scraped_per_city = 0
     empty = False
 
     # this loop executes until we are out of search results, craigslist sets this limit at 3000
     # and cities often contain the full 3000 records (but not always)
     while not empty:
-        print(f"Gathering entries {scrapedInCity} through {scrapedInCity + 120}")
+        print(f"""Gathering entries {vehicles_scraped_per_city} through {vehicles_scraped_per_city
+                                                                         + 120} in city {city}""")
 
-        # now we scrape
         try:
-            searchUrl = f"{city['url']}/d/cars-trucks/search/cta?s={scrapedInCity}"
-            page = threadDict.session.get(searchUrl)
+            searchUrl = f"{city['url']}/d/cars-trucks/search/cta?s={vehicles_scraped_per_city}"
+            page = thread_dict.session.get(searchUrl)
         except Exception as e:
-            # catch any excpetion and continue the loop if we cannot access a site for whatever reason
+            # catch any excpetion and continue the loop if we cannot access a site for whatever
+            # reason
             print(f"Failed to reach {searchUrl}, entries have been dropped: {e}")
             continue
 
-        # each search page contains 120 entries
-        scrapedInCity += 120
+        # Each search page contains 120 entries
+        vehicles_scraped_per_city += 120
         tree = html.fromstring(page.content)
 
         # the following line returns a list of urls for different vehicles
@@ -132,85 +128,91 @@ def cityScrape(city, threadDict):
             empty = True
             continue
 
-        vehiclesList = []
+        vehicles_list = []
         for item in vehicles:
-            vehicleDetails = []
+            vehicle_details = []
 
             dt = item[1].attrib['datetime']
             # filter date by today's date WARNING (run only from 9AM-5PM UTC))
-            """ TEST MODE ON
-			if dt.split(' ')[0] != datetime.utcnow().strftime('%Y-%m-%d'):
-				continue
-			"""
+            # TEST MODE ON
+            # if dt.split(' ')[0] != datetime.utcnow().strftime('%Y-%m-%d'):
+            #	continue
 
-            vehicleDetails.append(item[2].attrib["href"])
+            vehicle_details.append(item[2].attrib["href"])
+
             try:
-                # attempt to grab the price of the vehicle. some vehicles dont have prices (which throws an exception)
-                # and we dont want those which is why we toss them
-                vehicleDetails.append(item[3][0].text)
-            except:
+                # attempt to grab the price of the vehicle. some vehicles dont have prices (which
+                # throws an exception) and we dont want those which is why we toss them
+                vehicle_details.append(item[3][0].text)
+            except Exception as e:
+                print(e)
                 continue
 
-            vehicleDetails.append(dt)
-            vehiclesList.append(vehicleDetails)
+            vehicle_details.append(dt)
+            vehicles_list.append(vehicle_details)
 
         # loop through each vehicle
-        for item in vehiclesList:
+        for item in vehicles_list:
             url = item[0]
+            vehicle_dict = {
+                "price": int(item[1].strip("$")),
+                "city": city['name'],
+                "datetime": item[2]
+            }
 
-            vehicleDict = {}
-            vehicleDict["price"] = int(item[1].strip("$"))
-            vehicleDict["city"] = city['name']
-            vehicleDict["datetime"] = item[2]
             try:
                 # grab each individual vehicle page
-                page = threadDict.session.get(url)
+                page = thread_dict.session.get(url)
                 tree = html.fromstring(page.content)
-            except:
-                print(f"Failed to reach {url}, entry has been dropped")
+            except Exception as e:
+                print(f"{e}: Failed to reach {url}, entry has been dropped")
                 continue
 
             attrs = tree.xpath('//span//b')
-            # this fetches a list of attributes about a given vehicle. each vehicle does not have every specific attribute listed on craigslist
-            # so this code gets a little messy as we need to handle errors if a car does not have the attribute we're looking for
+            # this fetches a list of attributes about a given vehicle. each vehicle does not have
+            # every specific attribute listed on craigslist so this code gets a little messy as
+            # we need to handle errors if a car does not have the attribute we're looking for
             for att in attrs:
                 try:
                     # model is the only attribute without a specific tag on craigslist
                     # if this code fails it means that we've grabbed the model of the vehicle
                     k = att.getparent().text.strip()
                     k = k.strip(":")
-                except:
+                except Exception as e:
+                    print(e)
                     k = "model_raw"
                 try:
                     # this code fails if item=None so we have to handle it appropriately
-                    vehicleDict[k] = att.text.strip()
-                except:
+                    vehicle_dict[k] = att.text.strip()
+                except Exception as e:
+                    print(e)
                     continue
 
             # TODO: find a standardized way to store make and model (hacky solution rn)
-            if "model_raw" in vehicleDict:
-                parsed = parse_model(vehicleDict['model_raw'])
+            if "model_raw" in vehicle_dict:
+                parsed = parse_model(vehicle_dict['model_raw'])
                 if parsed is None:
                     continue
                 else:
-                    vehicleDict.update(parsed)
+                    vehicle_dict.update(parsed)
             else:
                 continue
 
             # fetch the image url if exists
             try:
                 img = tree.xpath('//div[@class="slide first visible"]//img')
-                vehicleDict['image_url'] = img[0].attrib["src"]
-            except:
+                vehicle_dict['image_url'] = img[0].attrib["src"]
+            except Exception as e:
+                print(e)
                 pass
 
             # fetch lat/long and city/state if exists
             try:
                 location = tree.xpath("//div[@id='map']")
-                vehicleDict['lat'] = float(location[0].attrib["data-latitude"])
-                vehicle['lon'] = float(location[0].attrib["data-longitude"])
-
-            except:
+                vehicle_dict['lat'] = float(location[0].attrib["data-latitude"])
+                vehicle_dict['lon'] = float(location[0].attrib["data-longitude"])
+            except Exception as e:
+                print(e)
                 pass
 
             # try to fetch a vehicle description
@@ -219,37 +221,38 @@ def cityScrape(city, threadDict):
                 description = location[0].text_content().strip()
                 description = description.strip()
                 description = description.strip("QR Code Link to This Post")
-                vehicleDict['description'] = description.lstrip()
-            except:
+                vehicle_dict['description'] = description.lstrip()
+            except Exception as e:
+                print(e)
                 pass
 
             # produce message to kafka
-            msg = json.dumps(vehicleDict)
-            # print("vehicleDict:", vehicleDict)
-            threadDict.producer.produce(msg.encode('utf-8'))
+            msg = json.dumps(vehicle_dict)
+            # print("vehicle_dict:", vehicle_dict)
+            thread_dict.producer.produce(msg.encode('utf-8'))
             # finally we get to insert the entry into the database
-            scraped += 1
+            vehicles_scraped += 1
 
         # these lines will execute every time we grab a new page (after 120 entries)
-        print("{} vehicles scraped".format(scraped))
+        print("{} vehicles vehicles_scraped".format(vehicles_scraped))
 
 
-def threader(threadDict):
+def threader(thread_dict):
     client, producer = kafkaconnect.connect(hosts, topics)
-    threadDict.producer = producer
-    threadDict.session = HTMLSession()
+    thread_dict.producer = producer
+    thread_dict.session = HTMLSession()
 
     while True:
         item = city_queue.get()
         if item is None:
             break
-        cityScrape(item, threadDict)
+        scrape_vehicles_from_city(item, thread_dict)
         city_queue.task_done()
 
-    threadDict.producer.stop()
+    thread_dict.producer.stop()
 
 
-def initThreading():
+def init_threading():
     threadDict = threading.local()
     threadDict.producer = None
     threadDict.session = None
@@ -261,14 +264,14 @@ def initThreading():
         threads.append(t)
 
 
-def populateQueue():
+def populate_queue():
     with open('cities.txt') as json_file:
         cities = json.load(json_file)
         for key, value in cities.items():
             city_queue.put(value)
 
 
-def stopThreads():
+def stop_threads():
     city_queue.join()
     # stop workers
     for i in range(threadCount):
@@ -279,9 +282,9 @@ def stopThreads():
 
 def main():
     s3_init()
-    populateQueue()
-    initThreading()
-    stopThreads()
+    populate_queue()
+    init_threading()
+    stop_threads()
 
 
 if __name__ == "__main__":

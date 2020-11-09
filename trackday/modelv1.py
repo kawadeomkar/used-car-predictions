@@ -25,22 +25,22 @@ def parse_model(model):
 		print(modelWords)
 		return None
 	# if remaining word is a make
-	if len(modelWords) == 1 and modelWords[0].lower() in carBrands:
+	if len(modelWords) == 1 and modelWords[0].lower() in car_brands:
 		ret['make'] = checkAlias(modelWords[0].lower())
 		return ret		
 
 	for idx, word in enumerate(modelWords):
-		if word.lower() in carBrands:
+		if word.lower() in car_brands:
 			make = word.lower()
 			if idx+1 < len(modelWords):
-				if make + modelWords[idx+1].lower() in carBrands:
+				if make + modelWords[idx+1].lower() in car_brands:
 					idxMake = idx
 					makeDouble = True
 			ret['make'] = checkAlias(make)
 			foundMake = True
 			idxMake = idx
 			break
-		elif idx+1 < len(modelWords) and word.lower() + modelWords[idx+1].lower() in carBrands:
+		elif idx+1 < len(modelWords) and word.lower() + modelWords[idx+1].lower() in car_brands:
 			ret['make'] = checkAlias(word.lower() + modelWords[idx+1].lower())
 			foundMake = True
 			makeDouble = True
@@ -82,7 +82,7 @@ def parse_test1(raw_model):
 			foundYear = True
 			idxYear = idx
 
-		elif word.lower() in carBrands:
+		elif word.lower() in car_brands:
 			make = word.lower()     
 			# convert from alias to actual car make
 			if make in aliasDict:
