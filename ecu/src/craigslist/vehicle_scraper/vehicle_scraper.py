@@ -48,10 +48,10 @@ def parse_model(raw_model):
     parsed_title_tokens = raw_model.strip().split(" ")
     ret = {}
 
-    def check_brand_alias(make):
-        return brand_aliases[make] if make in brand_aliases else make
+    def check_brand_alias(vehicle_make):
+        return brand_aliases[vehicle_make] if vehicle_make in brand_aliases else vehicle_make
 
-    # skip otherwise
+    # skip otherwise TODO: send to kafka for analysis
     if len(parsed_title_tokens[0]) != 4 and not parsed_title_tokens[0].isnumeric():
         print(parsed_title_tokens)
         return None
