@@ -3,6 +3,7 @@
 from collections import OrderedDict
 from datetime import datetime
 from lxml import html
+from pseudodb import car_brands, brand_aliases
 from requests_html import HTMLSession
 
 import argparse
@@ -11,7 +12,6 @@ import json
 import kafkaconnect
 import logging
 import os
-from src.craigslist.vehicle_scraper.pseudodb import car_brands, brand_aliases
 from queue import Queue
 import threading
 
